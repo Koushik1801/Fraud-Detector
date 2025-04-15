@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Credit Card Fraud Detection</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      width: 300px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input, select {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .result-button {
+      padding: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      margin-top: 20px;
+      display: none;
+    }
+
+    .red {
+      background-color: #e74c3c;
+    }
+
+    .green {
+      background-color: #2ecc71;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Credit Card Fraud Detector</h1>
+
+  <form id="fraudForm">
+    <label for="type">Transaction Type</label>
+    <select id="type" name="type" required>
+      <option value="CASH_OUT">CASH_OUT</option>
+      <option value="TRANSFER">TRANSFER</option>
+      <option value="DEBIT">DEBIT</option>
+      <option value="PAYMENT">PAYMENT</option>
+      <option value="CASH_IN">CASH_IN</option>
+    </select>
+
+    <label for="amount">Amount</label>
+    <input type="number" id="amount" name="amount" required>
+
+    <label for="oldbalanceOrg">Old Balance (Origin)</label>
+    <input type="number" id="oldbalanceOrg" name="oldbalanceOrg" required>
+
+    <label for="newbalanceOrig">New Balance (Origin)</label>
+    <input type="number" id="newbalanceOrig" name="newbalanceOrig" required>
+
+    <label for="oldbalanceDest">Old Balance (Destination)</label>
+    <input type="number" id="oldbalanceDest" name="oldbalanceDest" required>
+
+    <label for="newbalanceDest">New Balance (Destination)</label>
+    <input type="number" id="newbalanceDest" name="newbalanceDest" required>
+
+    <button type="submit">Predict</button>
+  </form>
+
+  <div>
+    <button id="result" class="result-button"></button>
+  </div>
+
+  <script>
+    document.getElementById("fraudForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      const formData = {
+        type: document.getElementById("type").value,
+        amount: parseFloat(document.getElementById("amount").value),
+        oldbalanceOrg: parseFloat(document.getElementById("oldbalanceOrg").value),
+        newbalanceOrig: parseFloat(document.getElementById("newbalanceOrig").value),
+        oldbalanceDest: parseFloat(document.getElementById("oldbalanceDest").value),
+        newbalanceDest: parseFloat(document.getElementById("newbalanceDest").value),
+      };
+
+      fetch("http://127.0.0.1:5000/predict", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log("API Response:", data);  // Debug log
+
+        const resultButton = document.getElementById("result");
+
+        if (data && data.prediction && data.prediction === "Fraud") {
+          resultButton.textContent = "Fraud";
+          resultButton.className = "result-button red";
+        } else if (data && data.prediction && data.prediction === "Not Fraud") {
+          resultButton.textContent = "Not Fraud";
+          resultButton.className = "result-button green";
+        } else {
+          resultButton.textContent = "Unexpected Result";
+          resultButton.className = "result-button";
+        }
+
+        resultButton.style.display = "inline-block";
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        alert("Error connecting to server or processing data.");
+      });
+    });
+  </script>
+
+</body>
+</html>
